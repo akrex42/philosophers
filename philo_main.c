@@ -7,14 +7,14 @@
 
 
 //# define NUM_THREADS 4
-# define NUM_PHILO 5
+# define NUM_PHILO 4
 # define SUCCESS 0
 # define FAILURE 1
 # define ERROR_JOIN_THREAD -10
-# define TIME_TO_DIE 40
-# define TIME_TO_EAT 10
-# define TIME_TO_SLEEP 10
-# define TIME_TO_THINK 10
+# define TIME_TO_DIE 410
+# define TIME_TO_EAT 200
+# define TIME_TO_SLEEP 200
+# define TIME_TO_THINK 10000
 
 static pthread_mutex_t state_mutex;
 
@@ -40,7 +40,8 @@ int left(int n)
 void	*philosopher(void *args)
 {
 	t_philo *phi = (t_philo*) args;
-	struct timeval current_time;
+	struct  timeval current_time;
+	double  temp;
 
 	if (phi->already_eaten && phi->time_in_mill_init - phi->time_in_mill > TIME_TO_DIE)
 	{
@@ -56,8 +57,17 @@ void	*philosopher(void *args)
 	if (right(phi->id) == 1)
 		phi->forks[left(phi->id)] = 1;
 	gettimeofday(&current_time, NULL);
+	temp = phi->time_in_mill_before;
+	printf("%f\t", temp);
 	phi->time_in_mill_before =
 			(double)(current_time.tv_sec) * 1000 + (double)(current_time.tv_usec) / 1000;
+	printf("%f\n", phi->time_in_mill_before);
+    if (phi->already_eaten == 1 && phi->time_in_mill_before - temp > TIME_TO_DIE)
+    {
+        printf("%d\t%s\n", phi->id, "died");
+        fflush(stdout);
+        exit (FAILURE);
+    }
 	printf("%f\t%d\t%s", phi->time_in_mill_before, phi->id, "is eating\n");
 	usleep(TIME_TO_EAT);
 	phi->already_eaten = 1;
@@ -76,8 +86,10 @@ void	*philosopher(void *args)
 	phi->time_in_mill =
 			(double)(current_time.tv_sec) * 1000 + (double)(current_time.tv_usec) / 1000;
 	printf("%f\t%d\t%s", phi->time_in_mill, phi->id, "is thinking\n");
-
 	usleep(TIME_TO_THINK);
+    gettimeofday(&current_time, NULL);
+    phi->time_in_mill =
+            (double)(current_time.tv_sec) * 1000 + (double)(current_time.tv_usec) / 1000;
 	if (phi->time_in_mill - phi->time_in_mill_before > TIME_TO_DIE) // not sure, we need to count time form the initialization of the prog + from eating to eating
 	{
 		printf("%d\t%s\n", phi->id, "died");
