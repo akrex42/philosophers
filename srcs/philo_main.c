@@ -1,7 +1,8 @@
 #include "../includes/philo.h"
 
 static pthread_mutex_t state_fork_1;
-static pthread_mutex_t state_fork_2;
+//static pthread_mutex_t state_fork_2;
+//static pthread_mutex_t state_fork_3;
 
 int right(int n, t_philo *phi)
 {
@@ -25,39 +26,55 @@ void	*philosopher(void *args)
 		fflush(stdout);
 		exit (FAILURE);
 	}
-	if (phi->forks[phi->id] != 1)
+	if (phi->forks[phi->id] == 0)
 	{
 		pthread_mutex_lock(&state_fork_1);
 		phi->forks[phi->id] = 1;
-		printf("%d\t%s", phi->id, "has taken a fork\n");
-//		phi->forks[right(phi->id, phi)] = 0;
+		printf("%d\t%s", phi->id, "has taken fork 1\n");
+		if (phi->forks[right(phi->id, phi)] == 0)
+		{
+//			pthread_mutex_lock(&state_fork_2);
+			phi->forks[right(phi->id, phi)] = 1;
+			printf("%d\t%s", phi->id, "has taken fork 2\n");
+			gettimeofday(&current_time, NULL);
+			phi->time_in_mill_before =
+					(double)(current_time.tv_sec) * 1000 + (double)(current_time.tv_usec) / 1000;
+			printf("%f\t%d\t%s", phi->time_in_mill_before, phi->id, "is eating\n");
+			usleep(phi->arg.time_to_eat);
+			pthread_mutex_unlock(&state_fork_1);
+//			pthread_mutex_unlock(&state_fork_2);
+			phi->forks[phi->id] = 0;
+			phi->forks[right(phi->id, phi)] = 0;
+		}
+		else if (phi->forks[left(phi->id, phi)] == 0)
+		{
+//			pthread_mutex_lock(&state_fork_3);
+			phi->forks[left(phi->id, phi)] = 1;
+			printf("%d\t%s", phi->id, "has taken fork 3\n");
+			gettimeofday(&current_time, NULL);
+			phi->time_in_mill_before =
+					(double)(current_time.tv_sec) * 1000 + (double)(current_time.tv_usec) / 1000;
+			printf("%f\t%d\t%s", phi->time_in_mill_before, phi->id, "is eating\n");
+			usleep(phi->arg.time_to_eat);
+			pthread_mutex_unlock(&state_fork_1);
+//			pthread_mutex_unlock(&state_fork_3);
+			phi->forks[phi->id] = 0;
+			phi->forks[left(phi->id, phi)] = 0;
+		}
 	}
-	if (phi->forks[right(phi->id, phi)] != 1)
+	if ((phi->forks[phi->id] == 1 && phi->forks[right(phi->id, phi)] == 1) || (phi->forks[phi->id] == 1 && phi->forks[left(phi->id, phi)] == 1))
 	{
-		pthread_mutex_lock(&state_fork_2);
-		phi->forks[right(phi->id, phi)] = 1;
-//		phi->forks[phi->id] = 1;
-		printf("%d\t%s", phi->id, "has taken a fork\n");
-	}
-	else if (phi->forks[left(phi->id, phi)] != 1)
-	{
-		pthread_mutex_lock(&state_fork_2);
-		phi->forks[left(phi->id, phi)] = 1;
-//		phi->forks[phi->id] = 1;
-		printf("%d\t%s", phi->id, "has taken a fork\n");
-	}
-	if ((phi->forks[phi->id] == 1 && phi->forks[left(phi->id, phi)] == 1) || (phi->forks[phi->id] == 1 && phi->forks[right(phi->id, phi)] == 1))
-	{
-		gettimeofday(&current_time, NULL);
-		phi->time_in_mill_before =
-				(double)(current_time.tv_sec) * 1000 + (double)(current_time.tv_usec) / 1000;
-		printf("%f\t%d\t%s", phi->time_in_mill_before, phi->id, "is eating\n");
-		usleep(phi->arg.time_to_eat);
-		pthread_mutex_unlock(&state_fork_1);
-		pthread_mutex_unlock(&state_fork_2);
 		phi->forks[phi->id] = 0;
-		phi->forks[left(phi->id, phi)] = 0;
-		phi->forks[right(phi->id, phi)] = 0;
+//		if (phi->forks[right(phi->id, phi)] == 1)
+//		{
+//			pthread_mutex_unlock(&state_fork_2);
+//			phi->forks[right(phi->id, phi)] = 0;
+//		}
+//		else
+//		{
+//			pthread_mutex_unlock(&state_fork_3);
+//			phi->forks[left(phi->id, phi)] = 0;
+//		}
 		phi->already_eaten = 1;
 		gettimeofday(&current_time, NULL);
 		phi->time_in_mill =
@@ -103,7 +120,7 @@ int main(int argc, char **argv)
 {
 //	printf("here");
 	pthread_mutex_init(&state_fork_1, NULL);
-	pthread_mutex_init(&state_fork_2, NULL);
+//	pthread_mutex_init(&state_fork_2, NULL);
 	pthread_t threads[atoi(argv[1])];
 	int status;
 	int j;
@@ -112,6 +129,7 @@ int main(int argc, char **argv)
 	check_args(&phi, argc, argv);
 	t_philo args[atoi(argv[1])];
 	phi.already_eaten = 0;
+	memset(phi.forks, 0, phi.arg.num_philo);
 	for (j = 0; j < atoi(argv[1]); j++) {
 		args[j].id = j;
 		args[j].arg.num_philo = atoi(argv[1]);
@@ -132,7 +150,7 @@ int main(int argc, char **argv)
 		{
 			printf("main error: can't create thread, status = %d\n", status);
 			pthread_mutex_destroy(&state_fork_1);
-			pthread_mutex_destroy(&state_fork_2);
+//			pthread_mutex_destroy(&state_fork_2);
 			exit(FAILURE);
 		}
 		if (j + 1 == phi.arg.num_philo)
@@ -145,7 +163,7 @@ int main(int argc, char **argv)
 		{
 			printf("main error: can't join thread, status = %d\n", status);
 			pthread_mutex_destroy(&state_fork_1);
-			pthread_mutex_destroy(&state_fork_2);
+//			pthread_mutex_destroy(&state_fork_2);
 			exit(ERROR_JOIN_THREAD);
 		}
 	}
