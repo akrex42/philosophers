@@ -26,11 +26,9 @@ typedef struct s_args {
 
 typedef struct s_philo {
 	int		id;
-	int		forks[5];
-	double	time_in_mill;
-	double	time_in_mill_before;
-	double	time_in_mill_init;
-	int 	already_eaten;
+	long	time_in_mill;
+	long	time_in_mill_before;
+	long 	prev_meal;
 	t_args	arg;
 } t_philo;
 
