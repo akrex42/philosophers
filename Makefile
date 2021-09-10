@@ -2,9 +2,9 @@ NAME		= philo
 
 #NAME_1		= checker
 
-SRCS_DIR	= ./srcs
+SRCS_DIR	= ./srcs/
 
-SRCS		= ./srcs/philo_main.c
+SRCS		= $(wildcard $(SRCS_DIR)*.c)
 
 OBJS		= $(patsubst %.c,%.o,$(SRCS))
 
@@ -14,9 +14,9 @@ HEADERS		= ./includes/philo.h
 
 CC			= gcc
 
-CFLAGS		= -Wall -Wextra -Werror -g -fsanitize=address
+CFLAGS		= -Wall -Wextra -Werror -g
 
-LDFLAGS		= -Wall -Wextra -Werror -g -fsanitize=address
+LDFLAGS		= -Wall -Wextra -Werror -g
 
 RM			= rm -f
 
@@ -37,8 +37,8 @@ clean:
 		$(RM) $(OBJS) $(DEPENDS)
 		clean
 
-#fclean: clean
-#		fclean
+fclean: clean
+		fclean
 
 re: fclean all
 
