@@ -1,6 +1,6 @@
 NAME		= philo
 
-#NAME_1		= checker
+#NAME_1		= philo2
 
 SRCS_DIR	= ./srcs/
 
@@ -25,7 +25,7 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) $^ -o $@
 
-#$(NAME_1): $(OBJS_1) $(LIBFT)
+#$(NAME_1): $(OBJS_1)
 #	$(CC) $(LDFLAGS) $^ -o $@
 
 $(SRCS_DIR)%.o: $(SRCS_DIR)%.c Makefile
@@ -38,7 +38,6 @@ clean:
 		clean
 
 fclean: clean
-		fclean
 
 re: fclean all
 

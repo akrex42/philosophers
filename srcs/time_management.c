@@ -7,18 +7,18 @@ void 	get_time(t_philo *phi, int code)
 	gettimeofday(&current_time, NULL);
 	if (code == 0)
 	{
-		phi->time_in_mill =
+		phi->current_time =
 				(current_time.tv_sec * 1000 + current_time.tv_usec / 1000) - phi->time_init;
 	}
 	else if (code == 1)
 	{
-		phi->time_in_mill_before =
+		phi->last_meal =
 				(current_time.tv_sec * 1000 + current_time.tv_usec / 1000) - phi->time_init;
 	}
 	else if (code == 2)
 	{
 		gettimeofday(&current_time, NULL);
-		phi->time_in_mill_left =
+		phi->time_left_fork =
 				(current_time.tv_sec * 1000 + current_time.tv_usec / 1000) - phi->time_init;
 	}
 }
@@ -38,14 +38,15 @@ void	ft_usleep(int time)
 
 int 	check_if_dead(t_philo *phi)
 {
+	pthread_mutex_lock(&print);
 	get_time(phi, 0);
-	if (phi->time_in_mill - phi->time_in_mill_before > phi->arg.time_to_die)
+	if (phi->current_time - phi->last_meal > phi->arg.time_to_die)
 	{
 		get_time(phi, 0);
-		pthread_mutex_lock(&print);
-		printf("%ld %d %s", phi->time_in_mill, phi->id, "died\n");
+		printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "died\n");
 		return (FAILURE);
 	}
+	pthread_mutex_unlock(&print);
 	return (SUCCESS);
 }
 
@@ -53,18 +54,21 @@ void 	create_timestamp(t_philo *phi)
 {
 	get_time(phi, 1);
 	pthread_mutex_lock(&print);
-	printf("%ld %d %s", phi->time_in_mill_before, phi->id, "is eating\n");
+	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is eating\n");
 	pthread_mutex_unlock(&print);
 	ft_usleep(phi->arg.time_to_eat);
 	phi->full = 1;
+	if (phi->arg.num_of_meals != INT_MIN)
+		phi->arg.num_of_meals--;
 	drop_forks(phi);
 	get_time(phi, 0);
 	pthread_mutex_lock(&print);
-	printf("%ld %d %s", phi->time_in_mill, phi->id, "is sleeping\n");
+	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is sleeping\n");
 	pthread_mutex_unlock(&print);
 	ft_usleep(phi->arg.time_to_sleep);
 	get_time(phi, 0);
 	pthread_mutex_lock(&print);
-	printf("%ld %d %s", phi->time_in_mill, phi->id, "is thinking\n");
+	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is thinking\n");
+	usleep(100);
 	pthread_mutex_unlock(&print);
 }

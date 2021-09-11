@@ -1,54 +1,45 @@
 #include "../includes/philo.h"
 
-void check_args(t_philo *phi, int argc, char **argv)
+int check_args(t_philo *phi, int argc, char **argv)
 {
-	(void)argc;
-	phi->arg.num_philo = atoi(argv[1]);
-	phi->arg.time_to_die = atoi(argv[2]);
-	phi->arg.time_to_eat = atoi(argv[3]);
-	phi->arg.time_to_sleep = atoi(argv[4]);
+	if (argc < 5 || argc > 6)
+	{
+		printf("Please enter 5 or 6 args\n");
+		return (FAILURE);
+	}
+	phi->arg.num_philo = ft_atoi(argv[1]);
+	if (phi->arg.num_philo > 200)
+	{
+		printf("No more than 200 philosophers, please!\n");
+		return (FAILURE);
+	}
+	phi->arg.time_to_die = ft_atoi(argv[2]);
+	phi->arg.time_to_eat = ft_atoi(argv[3]);
+	phi->arg.time_to_sleep = ft_atoi(argv[4]);
+	if (argc == 5)
+		phi->arg.num_of_meals = INT_MIN;
+	else
+		phi->arg.num_of_meals = ft_atoi(argv[5]);
+	return (SUCCESS);
 }
 
-int main(int argc, char **argv)
+void init_args(t_philo *args, int j, t_philo *phi)
 {
-	int status;
-	int j;
-	int status_addr = 0;
 	struct 	timeval current_time;
-	t_philo phi;
-	check_args(&phi, argc, argv);
-	t_philo args[atoi(argv[1])];
-	pthread_t threads[atoi(argv[1])];
-	pthread_t death_watcher;
-	phi.arg.num_philo = atoi(argv[1]);
-
-	pthread_mutex_init(&waiter, NULL);
-	pthread_mutex_init(&print, NULL);
 
 	gettimeofday(&current_time, NULL);
-
-	for (j = 0; j < atoi(argv[1]) + 1; j++)
-	{
-		int res = pthread_mutex_init(&forks[j], NULL);
-		if (res != 0)
-		{
-			printf("error");
-			return (FAILURE);
-		}
-	}
-
 	long time_in = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
-	for (j = 0; j < atoi(argv[1]); j++) {
+	for (j = 0; j < phi->arg.num_philo; j++) {
 		args[j].id = j + 1;
-		args[j].arg.num_philo = atoi(argv[1]);
-		args[j].arg.time_to_die = atoi(argv[2]);
-		args[j].arg.time_to_eat = atoi(argv[3]);
-		args[j].arg.time_to_sleep = atoi(argv[4]);
-		args[j].time_in_mill = 0;
-		args[j].prev_meal = 0;
-		args[j].time_in_mill_before = 0;
+		args[j].arg.num_philo = phi->arg.num_philo;
+		args[j].arg.time_to_die = phi->arg.time_to_die;
+		args[j].arg.time_to_eat = phi->arg.time_to_eat;
+		args[j].arg.time_to_sleep = phi->arg.time_to_sleep;
+		args[j].current_time = 0;
+		args[j].last_meal = 0;
 		args[j].time_init = time_in;
 		args[j].full = 0;
+		args[j].arg.num_of_meals = phi->arg.num_of_meals;
 		if (j % 2 == 0)
 		{
 			args[j].priority = 1;
@@ -56,44 +47,26 @@ int main(int argc, char **argv)
 		else
 			args[j].priority = 0;
 	}
+}
 
-	pthread_create(&death_watcher, NULL, death_routine, (void *) &args);
+int main(int argc, char **argv)
+{
+	int j;
+	t_philo phi;
+	if (check_args(&phi, argc, argv) == FAILURE)
+		return (-1);
+	t_philo args[phi.arg.num_philo];
+	pthread_t threads[phi.arg.num_philo];
+	pthread_t death_watcher;
+
 	j = 0;
-
-	while (j < atoi(argv[1]))
-	{
-		status = pthread_create(&threads[j], NULL, philosopher, (void *) &args[j]);
-		pthread_detach(threads[j]);
-		if (status == FAILURE)
-		{
-			printf("main error: can't create thread, status = %d\n", status);
-			while (j > 0)
-			{
-				pthread_mutex_destroy(&forks[j]);
-				j--;
-			}
-			return (FAILURE);
-		}
-		j++;
-	}
-
-	for (int k = 0; k < atoi(argv[1]); k++)
-	{
-		if (pthread_join(death_watcher, (void *)&status_addr) == FAILURE)
-		{
-			while (k > 0)
-			{
-				pthread_mutex_destroy(&forks[k]);
-				k--;
-			}
-		}
-		else
-			pthread_join(threads[k], (void *)&status_addr);
-	}
-	return (0);
+	if (init_mutexes(&phi, j) == FAILURE)
+		return (-1);
+	init_args(args, j, &phi);
+	if (create_threads(args, threads, argv) == FAILURE)
+		return (-1);
+	pthread_create(&death_watcher, NULL, death_routine, (void *) &args);
+	pthread_join(death_watcher, NULL);
 }
 
 // TODO death mutex
-// TODO parsing
-// TODO last arg with num of meals
-// TODO refactor function names
