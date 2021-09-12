@@ -43,7 +43,7 @@ int 	check_if_dead(t_philo *phi);
 void	*death_routine(void *args);
 void 	get_time(t_philo *phi, int code);
 int		ft_atoi(const char *str);
-int		create_threads(t_philo *args, pthread_t *threads, char **argv);
+int		create_threads(t_philo *args, pthread_t *death_watcher, pthread_t *threads, char **argv);
 int		init_mutexes(t_philo *phi, int j);
 
 #endif

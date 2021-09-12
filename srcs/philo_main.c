@@ -63,10 +63,25 @@ int main(int argc, char **argv)
 	if (init_mutexes(&phi, j) == FAILURE)
 		return (-1);
 	init_args(args, j, &phi);
-	if (create_threads(args, threads, argv) == FAILURE)
+	if (create_threads(args, &death_watcher, threads, argv) == FAILURE)
+	{
 		return (-1);
-	pthread_create(&death_watcher, NULL, death_routine, (void *) &args);
-	pthread_join(death_watcher, NULL);
+	}
+	int i = 0;
+	int status = 0;
+	while (i < phi.arg.num_philo)
+	{
+		status = pthread_create(&death_watcher, NULL, death_routine, (void *) &args[i]);
+		if (status == 1)
+		{
+			pthread_detach(death_watcher);
+			return (FAILURE);
+		}
+		i++;
+	}
+	if (pthread_join(death_watcher, NULL) == 1)
+		exit (0);
+	return (SUCCESS);
 }
 
 // TODO death mutex

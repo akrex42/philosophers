@@ -38,37 +38,39 @@ void	ft_usleep(int time)
 
 int 	check_if_dead(t_philo *phi)
 {
-	pthread_mutex_lock(&print);
 	get_time(phi, 0);
+//	printf("%ld %d %s", phi->current_time, phi->id, "current\n");
+//	printf("%ld %d %s", phi->last_meal, phi->id, "last\n");
 	if (phi->current_time - phi->last_meal > phi->arg.time_to_die)
 	{
-		get_time(phi, 0);
-		printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "died\n");
 		return (FAILURE);
 	}
-	pthread_mutex_unlock(&print);
+//	pthread_mutex_unlock(&print);
 	return (SUCCESS);
 }
 
 void 	create_timestamp(t_philo *phi)
 {
-	get_time(phi, 1);
 	pthread_mutex_lock(&print);
-	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is eating\n");
+	get_time(phi, 1);
+//	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is eating\n");
+	printf("%ld %d %s", phi->current_time, phi->id, "is eating\n");
 	pthread_mutex_unlock(&print);
 	ft_usleep(phi->arg.time_to_eat);
 	phi->full = 1;
 	if (phi->arg.num_of_meals != INT_MIN)
 		phi->arg.num_of_meals--;
 	drop_forks(phi);
-	get_time(phi, 0);
 	pthread_mutex_lock(&print);
-	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is sleeping\n");
+	get_time(phi, 0);
+//	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is sleeping\n");
+	printf("%ld %d %s", phi->current_time, phi->id, "is sleeping\n");
 	pthread_mutex_unlock(&print);
 	ft_usleep(phi->arg.time_to_sleep);
-	get_time(phi, 0);
 	pthread_mutex_lock(&print);
-	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is thinking\n");
-	usleep(100);
+	get_time(phi, 0);
+//	printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "is thinking\n");
+	printf("%ld %d %s", phi->current_time, phi->id, "is thinking\n");
+//	usleep(100);
 	pthread_mutex_unlock(&print);
 }

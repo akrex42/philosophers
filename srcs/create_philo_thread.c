@@ -10,11 +10,11 @@ void	*philosopher(void *args)
 		{
 			usleep(100);
 		}
-		if (phi->full == 1)
-		{
-			usleep(100);
-			phi->full = 0;
-		}
+//		if (phi->full == 1)
+//		{
+//			usleep(10);
+//			phi->full = 0;
+//		}
 		take_forks(phi);
 		create_timestamp(phi);
 	}
@@ -28,39 +28,36 @@ void	*death_routine(void *args)
 	{
 		if (check_if_dead(phi) == 1)
 		{
+			pthread_mutex_lock(&print);
+			get_time(phi, 0);
+//		printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "died\n");
+			printf("%ld %d %s", phi->current_time, phi->id, "died\n");
+			pthread_mutex_unlock(&print);
 			return ((void *)FAILURE);
 		}
 		if (phi->arg.num_of_meals == -1)
 		{
 			pthread_mutex_lock(&print);
 			printf("%s", "End of simulation!\n");
+//			pthread_mutex_unlock(&print);
 			return ((void *)FAILURE);
 		}
 	}
+	return ((void *)SUCCESS);
 }
 
-int create_threads(t_philo *args, pthread_t *threads, char **argv)
+int create_threads(t_philo *args, pthread_t *death_watcher, pthread_t *threads, char **argv)
 {
 	int status;
 	int i;
-
+//	(void)phi;
+	(void)death_watcher;
 	i = 0;
+	status = 0;
 	while (i < ft_atoi(argv[1]))
 	{
-//		if (i % 2 != 0)
-//			usleep(100);
-		status = pthread_create(&threads[i], NULL, philosopher, (void *) &args[i]);
+		pthread_create(&threads[i], NULL, philosopher, (void *) &args[i]);
 		pthread_detach(threads[i]);
-		if (status == FAILURE)
-		{
-			printf("Error in threads creation, status = %d\n", status);
-			while (i > 0)
-			{
-				pthread_mutex_destroy(&forks[i]);
-				i--;
-			}
-			return (FAILURE);
-		}
 		i++;
 	}
 	return (SUCCESS);
