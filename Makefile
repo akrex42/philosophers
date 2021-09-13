@@ -34,10 +34,10 @@ $(SRCS_DIR)%.o: $(SRCS_DIR)%.c Makefile
 -include $(DEPENDS)
 
 clean:
-		$(RM) $(OBJS) $(DEPENDS)
-		clean
+			$(RM) $(OBJS) $(DEPENDS)
 
 fclean: clean
+			$(RM) $(NAME)
 
 re: fclean all
 

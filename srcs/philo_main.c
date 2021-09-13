@@ -1,6 +1,6 @@
 #include "../includes/philo.h"
 
-int check_args(t_philo *phi, int argc, char **argv)
+int	check_args(t_philo *phi, int argc, char **argv)
 {
 	if (argc < 5 || argc > 6)
 	{
@@ -23,14 +23,18 @@ int check_args(t_philo *phi, int argc, char **argv)
 	return (SUCCESS);
 }
 
-void init_args(t_philo *args, int j, t_philo *phi)
+void	init_args(t_philo *args, int j, t_philo *phi)
 {
-	struct 	timeval current_time;
+	struct timeval	current_time;
+	long			time_in;
 
+//	phi = (t_philo *) args;
+	j = 1;
 	gettimeofday(&current_time, NULL);
-	long time_in = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
-	for (j = 0; j < phi->arg.num_philo; j++) {
-		args[j].id = j + 1;
+	time_in = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
+	while (j < phi->arg.num_philo + 1)
+	{
+		args[j].id = j;
 		args[j].arg.num_philo = phi->arg.num_philo;
 		args[j].arg.time_to_die = phi->arg.time_to_die;
 		args[j].arg.time_to_eat = phi->arg.time_to_eat;
@@ -42,46 +46,34 @@ void init_args(t_philo *args, int j, t_philo *phi)
 		args[j].arg.num_of_meals = phi->arg.num_of_meals;
 		if (j % 2 == 0)
 		{
-			args[j].priority = 1;
+			args[j].priority = 0;
 		}
 		else
-			args[j].priority = 0;
+			args[j].priority = 1;
+		j++;
 	}
 }
 
-int main(int argc, char **argv)
+int	main(int argc, char **argv)
 {
-	int j;
-	t_philo phi;
-	if (check_args(&phi, argc, argv) == FAILURE)
-		return (-1);
-	t_philo args[phi.arg.num_philo];
-	pthread_t threads[phi.arg.num_philo];
-	pthread_t death_watcher;
+	int			j;
+	t_philo		phi;
+	t_philo		*args;
+	pthread_t	*threads;
 
 	j = 0;
+	args = (t_philo*)malloc(sizeof(t_philo) * ft_atoi(argv[1]) + 1);
+	threads = (pthread_t*)malloc(sizeof(pthread_t) * ft_atoi(argv[1]) + 1);
+	if (check_args(&phi, argc, argv) == FAILURE)
+		return (-1);
 	if (init_mutexes(&phi, j) == FAILURE)
 		return (-1);
 	init_args(args, j, &phi);
-	if (create_threads(args, &death_watcher, threads, argv) == FAILURE)
+	if (create_threads(args, threads, argv) == FAILURE)
 	{
 		return (-1);
 	}
-	int i = 0;
-	int status = 0;
-	while (i < phi.arg.num_philo)
-	{
-		status = pthread_create(&death_watcher, NULL, death_routine, (void *) &args[i]);
-		if (status == 1)
-		{
-			pthread_detach(death_watcher);
-			return (FAILURE);
-		}
-		i++;
-	}
-	if (pthread_join(death_watcher, NULL) == 1)
-		exit (0);
+	free(args);
+	free(threads);
 	return (SUCCESS);
 }
-
-// TODO death mutex

@@ -2,19 +2,20 @@
 
 void	*philosopher(void *args)
 {
-	t_philo *phi = (t_philo*) args;
+	t_philo	*phi;
 
+	phi = (t_philo *) args;
 	while (1)
 	{
 		if (phi->priority == 0)
 		{
-			usleep(100);
+			usleep(10);
 		}
-//		if (phi->full == 1)
-//		{
-//			usleep(10);
-//			phi->full = 0;
-//		}
+		if (phi->full == 1)
+		{
+			usleep(10);
+			phi->full = 0;
+		}
 		take_forks(phi);
 		create_timestamp(phi);
 	}
@@ -22,50 +23,57 @@ void	*philosopher(void *args)
 
 void	*death_routine(void *args)
 {
-	t_philo *phi = (t_philo*) args;
+	int		i;
+	t_philo	*phi;
+	int		amount;
 
+	i = 1;
+	phi = (t_philo *) args;
+	amount = phi[i].arg.num_philo;
 	while (1)
 	{
-		if (check_if_dead(phi) == 1)
+		i = 1;
+		while (i < amount + 1)
 		{
-			pthread_mutex_lock(&print);
-			get_time(phi, 0);
-//		printf("%ld %s %d %s", phi->current_time, "Philosopher", phi->id, "died\n");
-			printf("%ld %d %s", phi->current_time, phi->id, "died\n");
-			pthread_mutex_unlock(&print);
-			return ((void *)FAILURE);
-		}
-		if (phi->arg.num_of_meals == -1)
-		{
-			pthread_mutex_lock(&print);
-			printf("%s", "End of simulation!\n");
-//			pthread_mutex_unlock(&print);
-			return ((void *)FAILURE);
+			if (check_if_dead(phi, i) == 1)
+			{
+				get_time(&phi[i], 0);
+				printf("%ld %s %d %s", phi[i].current_time,
+					   "Philosopher", phi[i].id, "died\n");
+				return ((void *) FAILURE);
+			}
+			if (phi[1].arg.num_of_meals == -2)
+			{
+				pthread_mutex_lock(&print);
+				printf("%s", "End of simulation!\n");
+				return ((void *) FAILURE);
+			}
+			i++;
 		}
 	}
-	return ((void *)SUCCESS);
 }
 
-int create_threads(t_philo *args, pthread_t *death_watcher, pthread_t *threads, char **argv)
+int	create_threads(t_philo *args, pthread_t *threads, char **argv)
 {
-	int status;
-	int i;
-//	(void)phi;
-	(void)death_watcher;
-	i = 0;
-	status = 0;
-	while (i < ft_atoi(argv[1]))
+	int	i;
+	int	result;
+
+	i = 1;
+	result = 0;
+	pthread_create(&threads[0], NULL, death_routine, (void *) args);
+	while (i < ft_atoi(argv[1]) + 1)
 	{
 		pthread_create(&threads[i], NULL, philosopher, (void *) &args[i]);
 		pthread_detach(threads[i]);
 		i++;
 	}
+	pthread_join(threads[0], (void *) &result);
 	return (SUCCESS);
 }
 
-int init_mutexes(t_philo *phi, int j)
+int	init_mutexes(t_philo *phi, int j)
 {
-	int res;
+	int	res;
 
 	pthread_mutex_init(&print, NULL);
 	while (j < phi->arg.num_philo + 1)
