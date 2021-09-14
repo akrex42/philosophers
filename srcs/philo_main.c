@@ -28,7 +28,6 @@ void	init_args(t_philo *args, int j, t_philo *phi)
 	struct timeval	current_time;
 	long			time_in;
 
-//	phi = (t_philo *) args;
 	j = 1;
 	gettimeofday(&current_time, NULL);
 	time_in = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
@@ -45,9 +44,7 @@ void	init_args(t_philo *args, int j, t_philo *phi)
 		args[j].full = 0;
 		args[j].arg.num_of_meals = phi->arg.num_of_meals;
 		if (j % 2 == 0)
-		{
 			args[j].priority = 0;
-		}
 		else
 			args[j].priority = 1;
 		j++;
@@ -62,18 +59,18 @@ int	main(int argc, char **argv)
 	pthread_t	*threads;
 
 	j = 0;
-	args = (t_philo*)malloc(sizeof(t_philo) * ft_atoi(argv[1]) + 1);
-	threads = (pthread_t*)malloc(sizeof(pthread_t) * ft_atoi(argv[1]) + 1);
+	args = (t_philo *)malloc(sizeof(*args) * (ft_atoi(argv[1]) + 1));
+	threads = (pthread_t *)malloc(sizeof(threads) * (ft_atoi(argv[1]) + 1));
+	pthread_mutex_init(&g_print, NULL);
 	if (check_args(&phi, argc, argv) == FAILURE)
 		return (-1);
 	if (init_mutexes(&phi, j) == FAILURE)
 		return (-1);
 	init_args(args, j, &phi);
 	if (create_threads(args, threads, argv) == FAILURE)
-	{
 		return (-1);
-	}
 	free(args);
 	free(threads);
+	pthread_mutex_destroy(&g_print);
 	return (SUCCESS);
 }

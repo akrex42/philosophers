@@ -7,18 +7,25 @@ void	*philosopher(void *args)
 	phi = (t_philo *) args;
 	while (1)
 	{
-		if (phi->priority == 0)
+		if (phi->priority == 1)
 		{
-			usleep(10);
+			usleep(100);
 		}
 		if (phi->full == 1)
 		{
-			usleep(10);
+			usleep(100);
 			phi->full = 0;
 		}
 		take_forks(phi);
 		create_timestamp(phi);
 	}
+}
+
+void	*end_of_sim(void)
+{
+	pthread_mutex_lock(&g_print);
+	printf("%s", "End of simulation!\n");
+	return ((void *) FAILURE);
 }
 
 void	*death_routine(void *args)
@@ -27,9 +34,8 @@ void	*death_routine(void *args)
 	t_philo	*phi;
 	int		amount;
 
-	i = 1;
 	phi = (t_philo *) args;
-	amount = phi[i].arg.num_philo;
+	amount = phi[1].arg.num_philo;
 	while (1)
 	{
 		i = 1;
@@ -43,11 +49,7 @@ void	*death_routine(void *args)
 				return ((void *) FAILURE);
 			}
 			if (phi[1].arg.num_of_meals == -2)
-			{
-				pthread_mutex_lock(&print);
-				printf("%s", "End of simulation!\n");
-				return ((void *) FAILURE);
-			}
+				return (end_of_sim());
 			i++;
 		}
 	}
@@ -75,10 +77,10 @@ int	init_mutexes(t_philo *phi, int j)
 {
 	int	res;
 
-	pthread_mutex_init(&print, NULL);
+	j = 1;
 	while (j < phi->arg.num_philo + 1)
 	{
-		res = pthread_mutex_init(&forks[j], NULL);
+		res = pthread_mutex_init(&g_forks[j], NULL);
 		if (res != 0)
 		{
 			printf("Error in mutexes creation\n");
